@@ -1,125 +1,131 @@
 package com.stacs.cs4103.client;
 
-import com.google.gwt.event.dom.client.*;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.*;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class MessagePassingSystem implements EntryPoint {
-  /**
-   * The message displayed to the user when the server cannot be reached or
-   * returns an error.
-   */
-  private static final String SERVER_ERROR = "An error occurred while "
-      + "attempting to contact the server. Please check your network "
-      + "connection and try again.";
+    /**
+     * This is the entry point method.
+     */
 
-  /**
-   * Create a remote service proxy to talk to the server-side Greeting service.
-   */
-  private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
+    private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
 
+    // CREATE A MESSAGE PASSING SYSTEM
+    private final VerticalPanel mainPanel = new VerticalPanel();
+    private final TextBox messageLabelTextBox = new TextBox();
+    private final TextBox yourProcessIdTextBox = new TextBox();
+    private final TextBox senderProcessIdTextBox = new TextBox();
+    private final TextArea messageTextArea = new TextArea();
+    private final Button sendButton = new Button("Send");
+    private final Button receiveButton = new Button("Receive");
 
-  /**
-   * This is the entry point method.
-   */
+    private final Button getProcessID = new Button("Get Process ID");
 
+    private Map<String, Message> messageContainer = new HashMap<String, Message>();
 
-  // CREATE A MESSAGE PASSING SYSTEM
-  private final VerticalPanel mainPanel = new VerticalPanel();
-  private final TextBox messageLabelTextBox = new TextBox();
-  private final TextBox yourProcessIdTextBox = new TextBox();
-  private final TextBox senderProcessIdTextBox = new TextBox();
-  private final TextArea messageTextArea = new TextArea();
-  private final Button sendButton = new Button("Send");
-private final Button receiveButton = new Button("Receive");
+    private Map<String, Message> receivedMessageContainer = new HashMap<String, Message>();
+
+    private Integer processID;
+
+    private int lamportClock = 1;
 
 
-  public void onModuleLoad() {
-    mainPanel.add(new Label("Message Passing System"));
-    mainPanel.addStyleName("mainPanel");
+    public void onModuleLoad() {
+        // Every node maintains a Lamport clock and increments it.
+        int onModuleLoadClock = lamportClock;
+        lamportClock++;
 
-    mainPanel.add(new Label("Message Label:"));
-    messageLabelTextBox.addStyleName("messageLabelTextBox");
-    mainPanel.add(messageLabelTextBox);
+        mainPanel.add(new Label("Message Passing System"));
+        mainPanel.addStyleName("mainPanel");
 
-    mainPanel.add(new Label("Your Process ID:"));
-    yourProcessIdTextBox.addStyleName("yourProcessIdTextBox");
-    mainPanel.add(yourProcessIdTextBox);
+        mainPanel.add(new Label("Message Label:"));
+        messageLabelTextBox.addStyleName("messageLabelTextBox");
+        mainPanel.add(messageLabelTextBox);
 
-    mainPanel.add(new Label("Sender Process ID:"));
-    senderProcessIdTextBox.addStyleName("senderProcessIdTextBox");
-    mainPanel.add(senderProcessIdTextBox);
+        mainPanel.add(new Label("Your Process ID:"));
+        yourProcessIdTextBox.addStyleName("yourProcessIdTextBox");
+        mainPanel.add(yourProcessIdTextBox);
 
-    mainPanel.add(new Label("Message:"));
-    messageTextArea.addStyleName("messageTextArea");
-    mainPanel.add(messageTextArea);
+        mainPanel.add(new Label("Sender Process ID:"));
+        senderProcessIdTextBox.addStyleName("senderProcessIdTextBox");
+        mainPanel.add(senderProcessIdTextBox);
 
-    sendButton.addStyleName("sendButton");
-    sendButton.addClickHandler(new ClickHandler() {
-      public void onClick(ClickEvent event) {
-        sendMessage();
-      }
-    });
-    mainPanel.add(sendButton);
+        mainPanel.add(new Label("Message:"));
+        messageTextArea.addStyleName("messageTextArea");
+        mainPanel.add(messageTextArea);
 
+        getProcessID.addStyleName("getProcessID");
+        mainPanel.add(getProcessID);
 
-    receiveButton.addStyleName("receiveButton");
-    receiveButton.addClickHandler(new ClickHandler() {
-      public void onClick(ClickEvent event) {
-        receiveMessage();
-      }
-    });
-    mainPanel.add(receiveButton);
+        sendButton.addStyleName("sendButton");
+        mainPanel.add(sendButton);
 
-    RootPanel.get().add(mainPanel);
+        receiveButton.addStyleName("receiveButton");
+        mainPanel.add(receiveButton);
 
-    // Focus the cursor on the name field when the app loads
-    messageTextArea.setFocus(true);
-    senderProcessIdTextBox.setFocus(true);
-    yourProcessIdTextBox.setFocus(true);
+        RootPanel.get().add(mainPanel);
 
-  }
+        // Focus the cursor on the name field when the app loads
+        messageTextArea.setFocus(true);
+        senderProcessIdTextBox.setFocus(true);
+        yourProcessIdTextBox.setFocus(true);
 
 
-        public void sendMessage () {
-          String messageLabel = messageLabelTextBox.getText().trim().toUpperCase();
-          String yourProcessId = yourProcessIdTextBox.getText().trim();
-          String senderProcessId = senderProcessIdTextBox.getText().trim().toUpperCase();
-          int senderProcessIdLength = senderProcessId.length();
-          String message = messageTextArea.getText().trim().toUpperCase();
+        getProcessID.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent event) {
+                // Every node maintains a Lamport clock and increments it.
+                int getProcessIDClock = lamportClock;
+                lamportClock++;
+                processID = 100;
+                if (processID != null) {
+                    greetingService.addOne(processID, new AsyncCallback<Integer>() {
+                        @Override
+                        public void onFailure(Throwable caught) {
+                            Window.alert("Error: " + caught.getMessage());
+                        }
 
-          if (messageLabel.isEmpty()) {
-            Window.alert("Please enter a valid message label");
-            messageLabelTextBox.setFocus(true);
-            return;
-          }
+                        @Override
+                        public void onSuccess(Integer result) {
+                            Window.alert("Process ID: " + result);
+                            yourProcessIdTextBox.setText(result.toString());
+                            processID = result;
+                        }
+                    });
+                }
+            }
 
-          if(message.isEmpty()) {
-            Window.alert("Please enter a valid message");
-            messageTextArea.setFocus(true);
-            return;
-          }
-          if(senderProcessId.isEmpty()) {
-            Window.alert("Please enter a valid sender process ID");
-            senderProcessIdTextBox.setFocus(true);
-            return;
-          }
-          if (!senderProcessId.matches("[0-9]+") ) {
-            Window.alert("Please enter a valid sender process ID");
-            senderProcessIdTextBox.selectAll();
-            return;
-          }
+        });
+
+        sendButton.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent event) {
+                // Every node maintains a Lamport clock and increments it.
+                int sendButtonClock = lamportClock;
+                lamportClock++;
+            }
+        });
 
 
-        }
+        receiveButton.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent event) {
+                // Every node maintains a Lamport clock and increments it.
+                int receiveButtonClock = lamportClock;
+                lamportClock++;
 
-        public void receiveMessage () {
-      Window.alert("Receive button clicked");
+            }
+        });
 
-        }
-      }
+
+    }
+
+}
