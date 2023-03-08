@@ -3,6 +3,7 @@ package com.stacs.cs4103.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.stacs.cs4103.client.GreetingService;
 import com.stacs.cs4103.client.Message;
+import org.apache.xpath.operations.String;
 
 import java.util.Map;
 
@@ -13,20 +14,49 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 
     private static Map<String, Message> messages;
 
+    private static int serverLamportTime = 0;
+
+    private static int serverProcessIDCount = 0;
+
+
+
+
     @Override
     public int addOne(int n) {
-        try {
-            Thread.sleep(100);
-            n++;
-        } catch (InterruptedException e) {
-            //
-        }
-        return n;
+            int returnProcessID = 0;
+            if(n == serverProcessIDCount){
+                serverProcessIDCount++;
+                returnProcessID = serverProcessIDCount;
+            } else if( n > serverProcessIDCount){
+                serverProcessIDCount = n;
+                serverProcessIDCount++;
+                returnProcessID = serverProcessIDCount;
+            } else if( n < serverProcessIDCount){
+                serverProcessIDCount++;
+                returnProcessID = serverProcessIDCount;
+            }
+            return serverProcessIDCount;
+
     }
 
-    public String sendMessage(String lamportTime, String messageLabel, String yourProcessId, String senderProcessId, String message) {
-        messages.put(senderProcessId, new Message(lamportTime, messageLabel, yourProcessId, senderProcessId, message));
-        return "Message sent successfully";
+    @Override
+    public int globalClock(int clientLamportTime) {
+        int returnClockTime = 0;
+        if (clientLamportTime == serverLamportTime) {
+            serverLamportTime++;
+            returnClockTime = serverLamportTime;
+            // Send the message
+        } else if (clientLamportTime > serverLamportTime) {
+            serverLamportTime = clientLamportTime;
+            serverLamportTime++;
+            returnClockTime = serverLamportTime;
+            // Send the message
+        } else if (clientLamportTime < serverLamportTime) {
+            serverLamportTime++;
+            returnClockTime = serverLamportTime;
+            // Send the message
+        }
+        return returnClockTime;
     }
 
 }

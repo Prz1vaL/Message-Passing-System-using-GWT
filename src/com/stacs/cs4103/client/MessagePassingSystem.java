@@ -7,6 +7,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
+import com.stacs.cs4103.server.GreetingServiceImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,8 +19,9 @@ public class MessagePassingSystem implements EntryPoint {
     /**
      * This is the entry point method.
      */
-
     private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
+
+  //  private final GreetingServiceImpl greetingServiceImpl = new GreetingServiceImpl();
 
     // CREATE A MESSAGE PASSING SYSTEM
     private final VerticalPanel mainPanel = new VerticalPanel();
@@ -36,15 +38,16 @@ public class MessagePassingSystem implements EntryPoint {
 
     private Map<String, Message> receivedMessageContainer = new HashMap<String, Message>();
 
-    private Integer processID;
+    private Integer processID = 100;
 
-    private int lamportClock = 1;
+    private int lamportClock = 0;
 
 
     public void onModuleLoad() {
         // Every node maintains a Lamport clock and increments it.
-        int onModuleLoadClock = lamportClock;
+        int onModuleLoadClock = 1;
         lamportClock++;
+        Window.alert(String.valueOf(onModuleLoadClock));
 
         mainPanel.add(new Label("Message Passing System"));
         mainPanel.addStyleName("mainPanel");
@@ -87,8 +90,7 @@ public class MessagePassingSystem implements EntryPoint {
                 // Every node maintains a Lamport clock and increments it.
                 int getProcessIDClock = lamportClock;
                 lamportClock++;
-                processID = 100;
-                if (processID != null) {
+               // processID ++;
                     greetingService.addOne(processID, new AsyncCallback<Integer>() {
                         @Override
                         public void onFailure(Throwable caught) {
@@ -100,10 +102,10 @@ public class MessagePassingSystem implements EntryPoint {
                             Window.alert("Process ID: " + result);
                             yourProcessIdTextBox.setText(result.toString());
                             processID = result;
+
                         }
                     });
                 }
-            }
 
         });
 
@@ -111,9 +113,24 @@ public class MessagePassingSystem implements EntryPoint {
             public void onClick(ClickEvent event) {
                 // Every node maintains a Lamport clock and increments it.
                 int sendButtonClock = lamportClock;
+                Window.alert(String.valueOf(sendButtonClock));
                 lamportClock++;
-            }
-        });
+
+                greetingService.globalClock(lamportClock,new AsyncCallback<Integer>() {
+                    @Override
+                    public void onFailure(Throwable caught) {
+                        Window.alert("Error: " + caught.getMessage());
+                    }
+
+                    @Override
+                    public void onSuccess(Integer result) {
+                        Window.alert("Global Clock: " + result);
+                        lamportClock = result;
+                    }
+                });
+                }
+            });
+
 
 
         receiveButton.addClickHandler(new ClickHandler() {
@@ -121,7 +138,7 @@ public class MessagePassingSystem implements EntryPoint {
                 // Every node maintains a Lamport clock and increments it.
                 int receiveButtonClock = lamportClock;
                 lamportClock++;
-
+                Window.alert(String.valueOf(receiveButtonClock));
             }
         });
 

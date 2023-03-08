@@ -9,6 +9,8 @@ public interface GreetingServiceAsync {
 
  void addOne(int input, AsyncCallback<Integer> callback);
 
- void sendMessage(String lampartClockString, String messageLabel, String yourProcessId, String senderProcessId, String message, AsyncCallback<String> stringAsyncCallback);
+
+ void globalClock(int clock, AsyncCallback<Integer> callback);
+
 
 }
