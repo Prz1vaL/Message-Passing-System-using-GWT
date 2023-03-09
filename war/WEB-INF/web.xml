@@ -10,12 +10,12 @@
     <servlet-name>greetServlet</servlet-name>
     <servlet-class>com.stacs.cs4103.server.GreetingServiceImpl</servlet-class>
   </servlet>
-  
+
   <servlet-mapping>
     <servlet-name>greetServlet</servlet-name>
     <url-pattern>/messagepassingsystem/greet</url-pattern>
   </servlet-mapping>
-  
+
   <!-- Default page to serve -->
   <welcome-file-list>
     <welcome-file>MessagePassingSystem.html</welcome-file>

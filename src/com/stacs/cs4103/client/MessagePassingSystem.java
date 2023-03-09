@@ -7,9 +7,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
-import com.stacs.cs4103.server.GreetingServiceImpl;
-
-import java.util.HashMap;
+import com.stacs.cs4103.shared.Message;
 import java.util.Map;
 
 /**
@@ -21,7 +19,7 @@ public class MessagePassingSystem implements EntryPoint {
      */
     private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
 
-  //  private final GreetingServiceImpl greetingServiceImpl = new GreetingServiceImpl();
+
 
     // CREATE A MESSAGE PASSING SYSTEM
     private final VerticalPanel mainPanel = new VerticalPanel();
@@ -32,29 +30,41 @@ public class MessagePassingSystem implements EntryPoint {
     private final Button sendButton = new Button("Send");
     private final Button receiveButton = new Button("Receive");
 
-    private final Button getProcessID = new Button("Get Process ID");
-
-    private Map<String, Message> messageContainer = new HashMap<String, Message>();
-
-    private Map<String, Message> receivedMessageContainer = new HashMap<String, Message>();
 
     private Integer processID = 100;
 
     private int lamportClock = 0;
 
+    private Integer senderProcessID = 0;
+
 
     public void onModuleLoad() {
+
         // Every node maintains a Lamport clock and increments it.
-        int onModuleLoadClock = 1;
         lamportClock++;
-        Window.alert(String.valueOf(onModuleLoadClock));
+        int onModuleLoadClock = lamportClock;
+        Window.alert("Initial Local Clock :" + onModuleLoadClock);
+
+        // Set the process - ID of the client.
+        greetingService.addOne(processID, new AsyncCallback<Integer>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                Window.alert("Error: " + caught.getMessage());
+            }
+
+            @Override
+            public void onSuccess(Integer result) {
+                yourProcessIdTextBox.setText(result.toString());
+                processID = result;
+
+            }
+        });
+
+
+        // Styling and HTML
 
         mainPanel.add(new Label("Message Passing System"));
         mainPanel.addStyleName("mainPanel");
-
-        mainPanel.add(new Label("Message Label:"));
-        messageLabelTextBox.addStyleName("messageLabelTextBox");
-        mainPanel.add(messageLabelTextBox);
 
         mainPanel.add(new Label("Your Process ID:"));
         yourProcessIdTextBox.addStyleName("yourProcessIdTextBox");
@@ -67,9 +77,6 @@ public class MessagePassingSystem implements EntryPoint {
         mainPanel.add(new Label("Message:"));
         messageTextArea.addStyleName("messageTextArea");
         mainPanel.add(messageTextArea);
-
-        getProcessID.addStyleName("getProcessID");
-        mainPanel.add(getProcessID);
 
         sendButton.addStyleName("sendButton");
         mainPanel.add(sendButton);
@@ -85,64 +92,89 @@ public class MessagePassingSystem implements EntryPoint {
         yourProcessIdTextBox.setFocus(true);
 
 
-        getProcessID.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                // Every node maintains a Lamport clock and increments it.
-                int getProcessIDClock = lamportClock;
-                lamportClock++;
-               // processID ++;
-                    greetingService.addOne(processID, new AsyncCallback<Integer>() {
-                        @Override
-                        public void onFailure(Throwable caught) {
-                            Window.alert("Error: " + caught.getMessage());
-                        }
-
-                        @Override
-                        public void onSuccess(Integer result) {
-                            Window.alert("Process ID: " + result);
-                            yourProcessIdTextBox.setText(result.toString());
-                            processID = result;
-
-                        }
-                    });
-                }
-
-        });
-
+        // Local Nodes and Buttons
         sendButton.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
                 // Every node maintains a Lamport clock and increments it.
                 int sendButtonClock = lamportClock;
                 Window.alert(String.valueOf(sendButtonClock));
                 lamportClock++;
+                if(senderProcessIdTextBox.getText().isEmpty()){
+                    Window.alert("Please enter a sender process ID");
+                }
+                try{
+                    senderProcessID = Integer.parseInt(senderProcessIdTextBox.getText());
 
-                greetingService.globalClock(lamportClock,new AsyncCallback<Integer>() {
+                } catch (NumberFormatException e ) {
+                    Window.alert("Please enter a valid number");
+                }
+                serverLamport();
+
+                Message message = new Message(lamportClock, senderProcessID, processID,messageTextArea.getText());
+                greetingService.sendMessage(message, new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable caught) {
                         Window.alert("Error: " + caught.getMessage());
                     }
 
                     @Override
-                    public void onSuccess(Integer result) {
-                        Window.alert("Global Clock: " + result);
-                        lamportClock = result;
+                    public void onSuccess(String result) {
+                        Window.alert("Message Sent: " + result);
                     }
                 });
-                }
-            });
 
-
-
-        receiveButton.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                // Every node maintains a Lamport clock and increments it.
-                int receiveButtonClock = lamportClock;
-                lamportClock++;
-                Window.alert(String.valueOf(receiveButtonClock));
             }
         });
 
+        receiveButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                // Every node maintains a Lamport clock and increments it.
+                int receiveButtonClock = lamportClock;
+                Window.alert(String.valueOf(receiveButtonClock));
+                // When a node receives a message '(t', m)' over the network link,
+                // update its local clock variable 't' to the maximum value of 't'
+                // received so far and increment it by 1.
+                serverLamport();
+                lamportClock++;
 
+                    greetingService.receiveMessage(processID, new AsyncCallback<Map<String, Message>>() {
+
+                        @Override
+                        public void onFailure(Throwable caught) {
+                            Window.alert("Error: " + caught.getMessage());
+                        }
+
+                        @Override
+                        public void onSuccess(Map<String, Message> result) {
+                            int messageTimeStamp = 0;
+                            String senderID = "";
+                            String messageContent = "";
+                            for (Map.Entry<String, Message> entry : result.entrySet()) {
+                                messageTimeStamp = entry.getValue().getLamportTime();
+                                senderID = String.valueOf(entry.getValue().getProcessID());
+                                messageContent = entry.getValue().getMessage();
+                            }
+                            Window.alert("Message Received: "+"<"+ messageTimeStamp +"> : " + senderID + " : " + messageContent);
+                        }
+                    });
+            }
+        });
+    }
+
+    private void serverLamport() {
+        greetingService.globalClock(lamportClock, new AsyncCallback<Integer>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                Window.alert("Error: " + caught.getMessage());
+            }
+
+            @Override
+            public void onSuccess(Integer result) {
+                Window.alert("Global Clock: " + result);
+                lamportClock = result;
+            }
+        });
     }
 
 }

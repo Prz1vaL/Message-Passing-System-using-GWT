@@ -1,2 +1,0 @@
-serviceClass: com.stacs.cs4103.client.MessageService
-path: BF030B7756236DB6286AC59E8E710F87.gwt.rpc
