@@ -3,6 +3,7 @@ package com.stacs.cs4103.client;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.stacs.cs4103.shared.Message;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -18,5 +19,7 @@ public interface GreetingServiceAsync {
 
  void sendMessage(Message message, AsyncCallback<String> async);
 
- void receiveMessage(Integer processID, AsyncCallback<Map<String, Message>> messageAsyncCallback);
+ //void receiveMessage(Integer processID, AsyncCallback<Map<String, Message>> messageAsyncCallback);
+
+ void receiveMessage(int processID, AsyncCallback<ArrayList<Message>> async);
 }

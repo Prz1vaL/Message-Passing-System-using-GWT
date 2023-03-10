@@ -6,18 +6,16 @@ public class Message implements IsSerializable {
 
 
     int lamportTime;
-    int senderProcessId;
-
-
+    int receiverProcessId;
 
     int processID;
     String message;
 
 
-    public Message(int LamportTime, int senderProcessId, int ProcessID,String message) {
-        this.lamportTime = LamportTime;
-        this.senderProcessId = senderProcessId;
-        this.processID = ProcessID;
+    public Message(int lamportTime, int receiverProcessId, int processID, String message) {
+        this.lamportTime = lamportTime;
+        this.receiverProcessId = receiverProcessId;
+        this.processID = processID;
         this.message = message;
 
     }
@@ -33,12 +31,12 @@ public class Message implements IsSerializable {
         this.lamportTime = lamportTime;
     }
 
-    public int getSenderProcessId() {
-        return senderProcessId;
+    public int getReceiverProcessId() {
+        return receiverProcessId;
     }
 
-    public void setSenderProcessId(int senderProcessId) {
-        this.senderProcessId = senderProcessId;
+    public void setReceiverProcessId(int receiverProcessId) {
+        this.receiverProcessId = receiverProcessId;
     }
 
     public String getMessage() {

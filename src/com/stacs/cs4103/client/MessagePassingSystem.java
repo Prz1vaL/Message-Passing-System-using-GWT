@@ -8,7 +8,8 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import com.stacs.cs4103.shared.Message;
-import java.util.Map;
+
+import java.util.ArrayList;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -25,23 +26,20 @@ public class MessagePassingSystem implements EntryPoint {
     private final VerticalPanel mainPanel = new VerticalPanel();
     private final TextBox messageLabelTextBox = new TextBox();
     private final TextBox yourProcessIdTextBox = new TextBox();
-    private final TextBox senderProcessIdTextBox = new TextBox();
+    private final TextBox receiverProcessIdTextBox = new TextBox();
     private final TextArea messageTextArea = new TextArea();
     private final Button sendButton = new Button("Send");
     private final Button receiveButton = new Button("Receive");
 
 
-    private Integer processID = 100;
+    private int processID = 100;
 
     private int lamportClock = 0;
 
-    private Integer senderProcessID = 0;
+    private int receiverProcessID = 0;
 
 
     public void onModuleLoad() {
-
-        // Every node maintains a Lamport clock and increments it.
-        lamportClock++;
         int onModuleLoadClock = lamportClock;
         Window.alert("Initial Local Clock :" + onModuleLoadClock);
 
@@ -61,7 +59,7 @@ public class MessagePassingSystem implements EntryPoint {
         });
 
 
-        // Styling and HTML
+        // Add UI components to the main panel.
 
         mainPanel.add(new Label("Message Passing System"));
         mainPanel.addStyleName("mainPanel");
@@ -70,9 +68,9 @@ public class MessagePassingSystem implements EntryPoint {
         yourProcessIdTextBox.addStyleName("yourProcessIdTextBox");
         mainPanel.add(yourProcessIdTextBox);
 
-        mainPanel.add(new Label("Sender Process ID:"));
-        senderProcessIdTextBox.addStyleName("senderProcessIdTextBox");
-        mainPanel.add(senderProcessIdTextBox);
+        mainPanel.add(new Label("Receiver Process ID:"));
+        receiverProcessIdTextBox.addStyleName("receiverProcessIdTextBox");
+        mainPanel.add(receiverProcessIdTextBox);
 
         mainPanel.add(new Label("Message:"));
         messageTextArea.addStyleName("messageTextArea");
@@ -88,7 +86,7 @@ public class MessagePassingSystem implements EntryPoint {
 
         // Focus the cursor on the name field when the app loads
         messageTextArea.setFocus(true);
-        senderProcessIdTextBox.setFocus(true);
+        receiverProcessIdTextBox.setFocus(true);
         yourProcessIdTextBox.setFocus(true);
 
 
@@ -99,18 +97,17 @@ public class MessagePassingSystem implements EntryPoint {
                 int sendButtonClock = lamportClock;
                 Window.alert(String.valueOf(sendButtonClock));
                 lamportClock++;
-                if(senderProcessIdTextBox.getText().isEmpty()){
+                if (receiverProcessIdTextBox.getText().isEmpty()) {
                     Window.alert("Please enter a sender process ID");
+                    return;
                 }
-                try{
-                    senderProcessID = Integer.parseInt(senderProcessIdTextBox.getText());
-
-                } catch (NumberFormatException e ) {
-                    Window.alert("Please enter a valid number");
-                }
+                receiverProcessID = Integer.parseInt(receiverProcessIdTextBox.getText());
+                // When a node sends a message '(t, m)' over the network link,
+                // it updates its local clock variable 't' to the maximum value of 't'
+                // received so far and increments it by 1.
                 serverLamport();
 
-                Message message = new Message(lamportClock, senderProcessID, processID,messageTextArea.getText());
+                Message message = new Message(lamportClock, receiverProcessID, processID,messageTextArea.getText());
                 greetingService.sendMessage(message, new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable caught) {
@@ -138,7 +135,7 @@ public class MessagePassingSystem implements EntryPoint {
                 serverLamport();
                 lamportClock++;
 
-                    greetingService.receiveMessage(processID, new AsyncCallback<Map<String, Message>>() {
+                    greetingService.receiveMessage(processID, new AsyncCallback<ArrayList<Message>>() {
 
                         @Override
                         public void onFailure(Throwable caught) {
@@ -146,16 +143,14 @@ public class MessagePassingSystem implements EntryPoint {
                         }
 
                         @Override
-                        public void onSuccess(Map<String, Message> result) {
-                            int messageTimeStamp = 0;
-                            String senderID = "";
-                            String messageContent = "";
-                            for (Map.Entry<String, Message> entry : result.entrySet()) {
-                                messageTimeStamp = entry.getValue().getLamportTime();
-                                senderID = String.valueOf(entry.getValue().getProcessID());
-                                messageContent = entry.getValue().getMessage();
+                        public void onSuccess(ArrayList<Message> result) {
+
+                            for (Message message : result) {
+                               int messageTimeStamp = message.getLamportTime();
+                               String senderID = String.valueOf(message.getProcessID());
+                               String messageContent = message.getMessage();
+                                Window.alert("Message Received: "+"<"+ messageTimeStamp +"> : " + senderID + " : " + messageContent);
                             }
-                            Window.alert("Message Received: "+"<"+ messageTimeStamp +"> : " + senderID + " : " + messageContent);
                         }
                     });
             }
@@ -171,8 +166,12 @@ public class MessagePassingSystem implements EntryPoint {
 
             @Override
             public void onSuccess(Integer result) {
+                if(result > lamportClock){
+                    lamportClock = result + 1;
+                } else {
+                    lamportClock++;
+                }
                 Window.alert("Global Clock: " + result);
-                lamportClock = result;
             }
         });
     }

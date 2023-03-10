@@ -4,7 +4,8 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.stacs.cs4103.shared.Message;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The client-side stub for the RPC service.
@@ -20,5 +21,5 @@ public interface GreetingService extends RemoteService {
     String sendMessage(Message message);
 
 
-    Map<String, Message> receiveMessage(Integer processID);
+    ArrayList<Message> receiveMessage(int processID);
 }

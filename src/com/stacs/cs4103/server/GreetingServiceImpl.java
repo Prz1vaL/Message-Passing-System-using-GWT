@@ -4,8 +4,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.stacs.cs4103.client.GreetingService;
 import com.stacs.cs4103.shared.Message;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The server-side implementation of the RPC service.
@@ -13,9 +13,9 @@ import java.util.Map;
 
 public class GreetingServiceImpl extends RemoteServiceServlet implements GreetingService {
 
-    private static Map<String, Message> messageContainer = new HashMap<>();
+    private static Map<String, Message> messageContainer = new ConcurrentHashMap<>();
 
-
+    private static List<Message> messageList = new ArrayList<>();
     private static int serverLamportTime = 0;
 
     private static int serverProcessIDCount = 0;
@@ -35,7 +35,7 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
             serverProcessIDCount++;
             returnProcessID = serverProcessIDCount;
         }
-        return serverProcessIDCount;
+        return returnProcessID;
 
     }
 
@@ -62,20 +62,29 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
     @Override
     public String sendMessage(Message message) {
         System.out.println("Message received from client: " + message.getMessage());
-        messageContainer.put(String.valueOf(message.getLamportTime()), message);
-        return "Server has received";
-
+      //  messageContainer.put(String.valueOf(message.getLamportTime()), message);
+        messageList.add(message);
+        return "Server has received the message.";
     }
 
     @Override
-    public Map<String, Message> receiveMessage(Integer processID) {
-        Map<String, Message> receiveMessageContainer = new HashMap<>();
-        for (Map.Entry<String, Message> entry : messageContainer.entrySet()) {
-            if (entry.getValue().getSenderProcessId() == processID) {
-                receiveMessageContainer.put(entry.getKey(), entry.getValue());
-                messageContainer.remove(entry.getKey());
+    public ArrayList<Message> receiveMessage(int processID) {
+
+        ArrayList<Message> receiveMessageContainer = new ArrayList<>();
+       // Iterator<Message> iterator = messageList.iterator();
+        for (Message message : messageList) {
+            if (message.getReceiverProcessId() == processID) {
+                receiveMessageContainer.add(message);
             }
         }
+        messageList.removeAll(receiveMessageContainer);
+//        while (iterator.hasNext()) {
+//            Message message = iterator.next();
+//            if (message.getSenderProcessId() == processID) {
+//                receiveMessageContainer.add(message);
+//                iterator.remove();
+//            }
+//        }
         return receiveMessageContainer;
     }
 }
