@@ -19,7 +19,6 @@ public interface GreetingServiceAsync {
 
  void sendMessage(Message message, AsyncCallback<String> async);
 
- //void receiveMessage(Integer processID, AsyncCallback<Map<String, Message>> messageAsyncCallback);
 
  void receiveMessage(int processID, AsyncCallback<ArrayList<Message>> async);
 }

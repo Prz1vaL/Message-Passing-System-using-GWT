@@ -4,8 +4,9 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.stacs.cs4103.client.GreetingService;
 import com.stacs.cs4103.shared.Message;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * The server-side implementation of the RPC service.
@@ -13,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GreetingServiceImpl extends RemoteServiceServlet implements GreetingService {
 
-    private static Map<String, Message> messageContainer = new ConcurrentHashMap<>();
 
     private static List<Message> messageList = new ArrayList<>();
     private static int serverLamportTime = 0;
@@ -39,30 +39,25 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 
     }
 
+    /**
+     * In this implementation, the globalClock method has been updated to be more robust.
+     * It simply updates the server's Lamport time to be the maximum of the client's Lamport time and the server's current Lamport time plus one.
+     * This ensures that the server's Lamport time is always increasing, even if a client sends a message with a Lamport time that is higher than the current server Lamport time.
+     * @param clientLamportTime The client's Lamport time.
+     * @return The server's Lamport time.
+     */
     @Override
     public int globalClock(int clientLamportTime) {
-        int returnClockTime = 0;
-        if (clientLamportTime == serverLamportTime) {
-            serverLamportTime++;
-            returnClockTime = serverLamportTime;
-            // Send the message
-        } else if (clientLamportTime > serverLamportTime) {
-            serverLamportTime = clientLamportTime;
-            serverLamportTime++;
-            returnClockTime = serverLamportTime;
-            // Send the message
-        } else if (clientLamportTime < serverLamportTime) {
-            serverLamportTime++;
-            returnClockTime = serverLamportTime;
-            // Send the message
-        }
-        return returnClockTime;
+        // Update the server's Lamport time
+        serverLamportTime = Math.max(serverLamportTime, clientLamportTime) + 1;
+        return serverLamportTime;
     }
 
     @Override
     public String sendMessage(Message message) {
+        // Update the message's Lamport time with the server's Lamport time
+        message.setLamportTime(globalClock(message.getLamportTime()));
         System.out.println("Message received from client: " + message.getMessage());
-      //  messageContainer.put(String.valueOf(message.getLamportTime()), message);
         messageList.add(message);
         return "Server has received the message.";
     }
@@ -71,20 +66,12 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
     public ArrayList<Message> receiveMessage(int processID) {
 
         ArrayList<Message> receiveMessageContainer = new ArrayList<>();
-       // Iterator<Message> iterator = messageList.iterator();
         for (Message message : messageList) {
             if (message.getReceiverProcessId() == processID) {
                 receiveMessageContainer.add(message);
             }
         }
         messageList.removeAll(receiveMessageContainer);
-//        while (iterator.hasNext()) {
-//            Message message = iterator.next();
-//            if (message.getSenderProcessId() == processID) {
-//                receiveMessageContainer.add(message);
-//                iterator.remove();
-//            }
-//        }
         return receiveMessageContainer;
     }
 }

@@ -24,7 +24,6 @@ public class MessagePassingSystem implements EntryPoint {
 
     // CREATE A MESSAGE PASSING SYSTEM
     private final VerticalPanel mainPanel = new VerticalPanel();
-    private final TextBox messageLabelTextBox = new TextBox();
     private final TextBox yourProcessIdTextBox = new TextBox();
     private final TextBox receiverProcessIdTextBox = new TextBox();
     private final TextArea messageTextArea = new TextArea();
