@@ -1,4 +1,4 @@
-# Message Passing System-using-GWT
+# Message Passing System using GWT
 
 ## DESCRIPTION
 <p>
