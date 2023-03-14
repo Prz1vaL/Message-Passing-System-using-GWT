@@ -56,7 +56,7 @@ This method takes a Message object as input and returns a string. It updates the
 ---
 ## LICENSE :
 This project is done part of coursework of <strong> CS4103 - Distributed Systems </strong> of the <strong> Computer Science Dept of University of St.Andrews.</strong>
-<p> This project is licensed under the MIT License - see the <code> LICENSE </code> file for details </p>.
+<p> This project is licensed under the MIT License - see the <code> LICENSE </code> file for details. </p>
 
     
     
