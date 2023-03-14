@@ -41,7 +41,23 @@ This method takes an integer clientLamportTime as input and returns the server's
  ##### sendMessage(Message message)
 This method takes a Message object as input and returns a string. It updates the message's Lamport time with the server's Lamport time, adds the message to the server's message list, and returns a confirmation string.
     
-  
+ ---
+
+## CONTRIBUTION GUIDELINES :
+<ol>
+<li> Clone the repository from GitHub.
+<li> Create a new branch for your feature or bug fix.
+<li> Implement your feature or bug fix.
+<li> Commit your changes and push to your branch on the GitHub server.
+<li> Submit a merge request to merge your changes into the main branch.
+</li>
+</ol>
+
+---
+## LICENSE :
+This project is done part of coursework of <strong> CS4103 - Distributed Systems </strong> of the <strong> Computer Science Dept of University of St.Andrews.</strong>
+<p> This project is licensed under the MIT License - see the <code> LICENSE </code> file for details </p>.
+
     
     
 
