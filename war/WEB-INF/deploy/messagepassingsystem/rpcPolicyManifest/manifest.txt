@@ -1,3 +1,3 @@
 # Module messagepassingsystem
 # RPC service class, partial path of RPC policy file
-com.stacs.cs4103.client.GreetingService, 02A4820FF647090124B5DEEF6F05904E.gwt.rpc
+com.stacs.cs4103.client.GreetingService, E07BE980D746A2B666EBE778D210064D.gwt.rpc

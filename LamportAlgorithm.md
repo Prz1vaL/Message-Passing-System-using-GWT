@@ -1,21 +1,21 @@
 <p> In the field of distributed systems, a logical clock is a mechanism that tracks the number of events that have occurred and is designed to capture causal dependencies between those events. 
 Specifically, if event 'e1' happens before event 'e2', then the logical clock should reflect that relationship:</br>
-  <center> <code> <em> (e1 -> e2) -> (T (e1) < T (e2)) </em> </code> </p> </center>
+  <center> <code> <em> (e1 -> e2) -> (T (e1) < T (e2)) </em> </code> </center>p> </center>
   
 
 <p> The Lamport Clock Algorithm is a particular implementation of a logical clock that follows the following steps:
-Step 1: Upon initialization, set each node's local clock variable 't' to 0. </br>,center>
+<strong> Step 1 </strong> : Upon initialization, set each node's local clock variable 't' to 0. </br>,center>
   <code> <em> ( t = 0)     …. (1) </em> </code> </p></center>
 
-<p> Step 2: For every local event, increment the value of 't' by 1.  </br><center>
+<p> <strong> Step 2 </strong> : For every local event, increment the value of 't' by 1.  </br><center>
 <code> <em> ( t = t + 1)     …. (2) </em> </code> </p></center>
 
-<p> Step 3: When a message 'm' is sent from a node, increment the value of 't' by 1 and attach the new value of 't' to the message. 
+<p> <strong> Step 3 </strong> : When a message 'm' is sent from a node, increment the value of 't' by 1 and attach the new value of 't' to the message. 
             The message is then sent over the network link.</br><center>
 <code> <em> (t = t + 1)  … (3)
   Send (t, m) ... (4)</em> </code></p></center>
   
-<p> Step 4: When a node receives a message '(t', m)' over the network link, update its local clock variable 't' to the maximum value of 't' received so far and increment it by 1. 
+<p> <strong> Step 4 </strong> : When a node receives a message '(t', m)' over the network link, update its local clock variable 't' to the maximum value of 't' received so far and increment it by 1. 
 The node then delivers the message 'm' to the application.</br> <center>
   <code> <em>
     Receive (t’, m) … (5)

@@ -1,0 +1,2 @@
+serviceClass: com.stacs.cs4103.client.GreetingService
+path: E07BE980D746A2B666EBE778D210064D.gwt.rpc
